@@ -8,7 +8,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 
@@ -28,6 +27,8 @@ public class HeadView extends LinearLayout {
     private Cursor cursor;
     private GridviewAdapter gridviewAdapter;
     private List<QuickAppBean> beans;
+    private LayoutParams lp;
+
     public HeadView(Context context) {
         this(context,null);
     }
@@ -40,22 +41,27 @@ public class HeadView extends LinearLayout {
         super(context, attrs, defStyleAttr);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LayoutParams.FILL_PARENT, 0);
+
+        //绑定头部布局
         mContainer = (LinearLayout) LayoutInflater.from(context).inflate(
                 R.layout.layout, null);
         addView(mContainer, lp);
         setGravity(Gravity.CENTER);
-
-
+        //控件绑定
         viewPager = mContainer.findViewById(R.id.viewpager);
+        initdata();
+        initView();
+    }
+
+    private void initdata() {
         beans = new ArrayList<>();
         beans = getStu();
-        initView();
     }
 
     public void setVisiableHeight(int height) {
         if (height < 0)
             height = 0;
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mContainer
+        lp = (LayoutParams) mContainer
                 .getLayoutParams();
         lp.height = height;
         mContainer.setLayoutParams(lp);

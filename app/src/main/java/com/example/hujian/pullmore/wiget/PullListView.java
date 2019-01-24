@@ -7,51 +7,57 @@ import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.Scroller;
-import android.widget.TextView;
 
 import com.example.hujian.pullmore.R;
 
-public class PullListView extends ListView{
+public class PullListView extends ListView {
     private float mLastY = -1; // save event y
-    private Scroller mScroller; // used for scroll back
+
     private OnScrollListener mScrollListener; // user's scroll listener
-    private int mScrollBack;
-    private HeadView mHeaderView;
-    private boolean isForbinRefresh = false;
-    private final static int SCROLLBACK_HEADER = 0;
     private LinearLayout mHeaderViewContent;
-    private TextView mHeaderTimeView;
+    private HeadView mHeaderView;
+    private Scroller mScroller; // used for scroll back
 
-    private final static int SCROLL_DURATION = 400;
-    private int mHeaderViewHeight; // header view's height
-    private boolean mEnablePullRefresh = true;
-    private boolean mPullRefreshing = false; // is refreashing.
 
+    private final static int SCROLLBACK_HEADER = 0;
+    private final static int SCROLL_DURATION = 200;
     private final static float OFFSET_RADIO = 1.8f;
 
+    private int mHeaderViewHeight; // header view's height
+    private int mScrollBack;
+
+
+    private boolean mEnablePullRefresh = true;
+    private boolean mPullRefreshing = false; // is refreashing.
+    private boolean isForbinRefresh = false;
+
+
     public PullListView(Context context) {
-        this(context,null);
+        this(context, null);
     }
 
     public PullListView(Context context, AttributeSet attrs) {
-        this(context, attrs,0);
+        this(context, attrs, 0);
     }
 
     public PullListView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initWithContext(context);
     }
+
+
     private void initWithContext(Context context) {
         mScroller = new Scroller(context, new DecelerateInterpolator());
-
-
         mHeaderView = new HeadView(context);
-        mHeaderViewContent = (LinearLayout) mHeaderView
+
+        //绑定内容部分
+        mHeaderViewContent = mHeaderView
                 .findViewById(R.id.xlistview_header_content);
+
         addHeaderView(mHeaderView);
 
+        //获取内容部分高度
         mHeaderView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
@@ -68,7 +74,6 @@ public class PullListView extends ListView{
         if (mLastY == -1) {
             mLastY = ev.getRawY();
         }
-
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mLastY = ev.getRawY();
@@ -83,18 +88,7 @@ public class PullListView extends ListView{
                 break;
 
             default:
-                mLastY = -1; // reset
-//                if (getFirstVisiblePosition() == 0) {
-//
-//                    if (mEnablePullRefresh
-//                            && mHeaderView.getVisiableHeight() > mHeaderViewHeight) {
-//                        mPullRefreshing = true;
-//                        mHeaderView.setState(XListViewHeader.STATE_REFRESHING);
-//                    }
-//
-//                } else if (getLastVisiblePosition() == mTotalItemCount - 1) {
-//
-//                }
+                mLastY = -1;
                 resetHeaderHeight();
                 break;
         }
@@ -125,12 +119,12 @@ public class PullListView extends ListView{
         if (height == 0) // not visible.
             return;
         //正在刷新，或者头部没有完全显示，返回
-        if (height<=mHeaderViewHeight){
+        if (height <= mHeaderViewHeight/2) {
             mScroller.startScroll(0, height, 0, 0, SCROLL_DURATION);
         }
         int finalHeight = 0;
         //正在刷新，并且下拉头部完全显示
-        if ( height > mHeaderViewHeight) {
+        if (height > mHeaderViewHeight/2||height>mHeaderViewHeight) {
             finalHeight = mHeaderViewHeight;
         }
         mScrollBack = SCROLLBACK_HEADER;
@@ -143,24 +137,11 @@ public class PullListView extends ListView{
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
-            if (mScrollBack == SCROLLBACK_HEADER) {
-                mHeaderView.setVisiableHeight(mScroller.getCurrY());//改变头部高度，实现回滚
-            } else {
-
-            }
+            if (mScrollBack != SCROLLBACK_HEADER)
+                return;
+            mHeaderView.setVisiableHeight(mScroller.getCurrY());//改变头部高度，实现回滚
             postInvalidate();
         }
         super.computeScroll();
-    }
-
-    /**
-     * stop refresh, reset header view.
-     * 停止刷新，重置头部
-     */
-    public void stopRefresh() {
-        if (mPullRefreshing == true) {
-            mPullRefreshing = false;
-            resetHeaderHeight();
-        }
     }
 }
