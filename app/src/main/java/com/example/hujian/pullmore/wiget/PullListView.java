@@ -2,23 +2,27 @@ package com.example.hujian.pullmore.wiget;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.AbsListView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Scroller;
 
 import com.example.hujian.pullmore.R;
 
-public class PullListView extends ListView {
+public class PullListView extends ListView implements AbsListView.OnScrollListener{
     private float mLastY = -1; // save event y
 
     private OnScrollListener mScrollListener; // user's scroll listener
-    private LinearLayout mHeaderViewContent;
+    private RelativeLayout mHeaderViewContent;
     private HeadView mHeaderView;
     private Scroller mScroller; // used for scroll back
-
+    private ExpendPoint mExpendPoint;
 
     private final static int SCROLLBACK_HEADER = 0;
     private final static int SCROLL_DURATION = 200;
@@ -44,6 +48,7 @@ public class PullListView extends ListView {
     public PullListView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initWithContext(context);
+        this.setOnScrollListener(this);
     }
 
 
@@ -143,5 +148,48 @@ public class PullListView extends ListView {
             postInvalidate();
         }
         super.computeScroll();
+    }
+
+    @Override
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+    }
+
+    @Override
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+       View firstVisibleItemView = this.getChildAt(1);
+        //获取第一个item
+//        if(mHeaderView.getVisiableHeight()<=0){
+//            boolean eq = firstVisibleItemView == mHeaderView;
+//            mHeaderView.onReset();
+//         //   Log.d("ListView", "##### 滚动到顶部 #####" + eq);
+//        }
+//
+//        if (mHeaderView.getVisiableHeight()>0){
+//            if (mHeaderView.getVisiableHeight()>mHeaderViewContent.getLayoutParams().height){
+//                mHeaderView.onArrivedListHeight();
+//            }
+//            if (mHeaderView.getVisiableHeight()>0){
+//                mHeaderView.onPull(mHeaderViewContent.getTop());
+//            }
+//        }
+
+
+
+        if (mHeaderView.getVisiableHeight()<=0) {
+            boolean eq = firstVisibleItemView == mHeaderView;
+            mHeaderView.onReset();
+            Log.d("ListView", "##### 滚动到顶部 #####" + eq);
+        }
+        if (firstVisibleItem == 0 && firstVisibleItemView != null) {
+            Log.d("ListView", "###" + firstVisibleItemView.getTop());
+
+            if (firstVisibleItemView.getTop() >= 0) {
+                mHeaderView.onPull(firstVisibleItemView.getTop());
+            }
+            if (firstVisibleItemView.getTop() >= mHeaderView.getListSize()) {
+                mHeaderView.onArrivedListHeight();
+            }
+        }
     }
 }
